@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Gestión de inventario y ventas de Cell's Shop.">
+  <title>Cell's Shop | Gestión</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./assets/icon-180.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="Cell's Shop inicio">
+        <span class="brand-mark">C<span>+</span></span>
+        <span><b>Cell's Shop</b><small>GESTIÓN COMERCIAL</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Navegación principal">
+        <button class="nav-link active" data-view="dashboard"><span>▦</span> Dashboard</button>
+        <button class="nav-link" data-view="catalog"><span>▤</span> Catálogo e inventario</button>
+        <button class="nav-link" data-view="products"><span>＋</span> Registro y ajustes</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="offline-note"><i></i><span>Modo local disponible</span></div>
+        <button class="nav-link" id="installHelp"><span>⇩</span> Instalar aplicación</button>
+        <div class="sidebar-foot">Cell's Shop · Control de negocio</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">PANEL DE CONTROL</div><h1 id="pageTitle">Dashboard</h1></div>
+        <div class="top-actions">
+          <span class="today" id="todayLabel"></span>
+          <button class="btn btn-ghost" id="backupBtn">↧ <span>Respaldo</span></button>
+          <button class="avatar" title="Cell's Shop">CS</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="welcome-row">
+          <div><h2>Resumen general</h2><p>Una visión rápida del estado de tu negocio.</p></div>
+          <button class="btn btn-primary" id="quickSaleBtn">＋ Registrar venta</button>
+        </div>
+        <div class="kpi-grid" id="inventoryKpis"></div>
+        <div class="section-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><h3>Ventas y utilidad</h3><p>Acumulado de ventas registradas</p></div><span class="tag">Histórico</span></div>
+            <div class="sales-summary" id="salesSummary"></div>
+            <div class="chart-wrap"><canvas id="salesChart" height="210" aria-label="Gráfico de ventas por día"></canvas></div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h3>Alertas de inventario</h3><p>Productos que requieren atención</p></div><button class="text-btn" data-go="catalog">Ver catálogo →</button></div>
+            <div id="lowStockList" class="compact-list"></div>
+          </article>
+        </div>
+        <div class="section-grid lower-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><h3>Productos más vendidos</h3><p>Según unidades vendidas</p></div></div>
+            <div id="topProducts" class="rank-list"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h3>Actividad reciente</h3><p>Últimas ventas registradas</p></div></div>
+            <div id="recentSales" class="compact-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-products">
+        <div class="welcome-row"><div><h2>Productos y movimientos</h2><p>Registra referencias y mantén actualizado el inventario.</p></div><button class="btn btn-primary" id="newProductBtn">＋ Nuevo producto</button></div>
+        <div class="panel form-panel" id="productFormPanel">
+          <div class="panel-heading"><div><h3 id="formTitle">Registrar producto</h3><p>Los campos marcados con * son obligatorios.</p></div><button class="icon-btn" id="closeProductForm" aria-label="Cerrar formulario">×</button></div>
+          <form id="productForm">
+            <input type="hidden" id="productId">
+            <div class="form-grid">
+              <label class="field span-2">Nombre o referencia *<input id="pName" required maxlength="90" placeholder="Ej. Cable USB-C trenzado"></label>
+              <label class="field">Categoría *<select id="pCategory" required><option value="">Seleccionar</option><option>Fundas</option><option>Cables</option><option>Cargadores</option><option>Vidrios templados</option><option>Audífonos</option><option>Soportes</option><option>Accesorios</option><option>Otros</option></select></label>
+              <label class="field">Foto del producto<input id="pPhoto" type="file" accept="image/*" capture="environment"></label>
+              <label class="field">Stock actual *<input id="pStock" type="number" min="0" step="1" required value="0"></label>
+              <label class="field">Stock mínimo *<input id="pMin" type="number" min="0" step="1" required value="3"></label>
+              <label class="field">Precio de costo ($) *<input id="pCost" type="number" min="0" step="1" required placeholder="0"></label>
+              <label class="field">Precio de venta ($) *<input id="pPrice" type="number" min="0" step="1" required placeholder="0"></label>
+            </div>
+            <div class="photo-preview-row"><img id="photoPreview" alt="Vista previa del producto" hidden><span id="photoHint">Puedes tomar una foto o seleccionar una imagen.</span></div>
+            <div class="profit-preview" id="profitPreview">Utilidad unitaria: $0 · Margen: 0%</div>
+            <div class="form-actions"><button type="button" class="btn btn-ghost" id="cancelProduct">Cancelar</button><button class="btn btn-primary" type="submit">Guardar producto</button></div>
+          </form>
+        </div>
+        <div class="panel">
+          <div class="panel-heading"><div><h3>Movimientos de inventario</h3><p>Registra entradas o salidas sin realizar una venta.</p></div></div>
+          <form id="movementForm" class="movement-form">
+            <label class="field">Producto<select id="movementProduct" required></select></label>
+            <label class="field">Tipo<select id="movementType"><option value="in">Entrada (+)</option><option value="out">Salida (-)</option></select></label>
+            <label class="field">Cantidad<input id="movementQty" type="number" min="1" step="1" value="1" required></label>
+            <button class="btn btn-secondary align-end" type="submit">Aplicar movimiento</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="view" id="view-catalog">
+        <div class="welcome-row"><div><h2>Catálogo de productos</h2><p>Consulta existencias, precios y necesidades de reposición.</p></div><button class="btn btn-primary" id="requisitionBtn">▣ Generar requisición</button></div>
+        <div class="panel filters-panel">
+          <label class="search-box"><span>⌕</span><input id="searchInput" placeholder="Buscar por nombre o referencia..."></label>
+          <select id="categoryFilter" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
+          <select id="stockFilter" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="available">Disponible</option><option value="low">Bajo inventario</option><option value="out">Agotado</option></select>
+        </div>
+        <div class="catalog-meta"><span id="catalogCount">0 productos</span><span class="legend"><i class="dot dot-green"></i> Disponible <i class="dot dot-amber"></i> Bajo <i class="dot dot-red"></i> Agotado</span></div>
+        <div id="productGrid" class="product-grid"></div>
+        <div id="emptyCatalog" class="empty-state" hidden><div class="empty-icon">▤</div><h3>No hay productos para mostrar</h3><p>Prueba con otros filtros o registra tu primera referencia.</p><button class="btn btn-primary" data-go="products">Crear producto</button></div>
+      </section>
+
+      <footer class="main-footer"><span>© <span id="year"></span> Cell's Shop</span><span>Los datos se guardan en este dispositivo.</span></footer>
+    </main>
+  </div>
+
+  <dialog id="saleDialog" class="modal">
+    <form id="saleForm" method="dialog">
+      <div class="modal-head"><div><div class="eyebrow">NUEVA TRANSACCIÓN</div><h2>Registrar venta</h2></div><button type="button" class="icon-btn" data-close="saleDialog">×</button></div>
+      <label class="field">Producto<select id="saleProduct" required></select></label>
+      <div class="sale-product-info" id="saleProductInfo">Selecciona un producto para ver su disponibilidad.</div>
+      <div class="form-grid two">
+        <label class="field">Cantidad<input id="saleQty" type="number" min="1" step="1" value="1" required></label>
+        <label class="field">Precio unitario ($)<input id="salePrice" type="number" min="0" step="1" required></label>
+      </div>
+      <label class="field">Observación (opcional)<input id="saleNote" maxlength="120" placeholder="Ej. Venta mostrador"></label>
+      <div class="sale-total"><span>Total de la venta</span><strong id="saleTotal">$0</strong></div>
+      <div class="form-actions"><button type="button" class="btn btn-ghost" data-close="saleDialog">Cancelar</button><button class="btn btn-primary" id="confirmSale" type="submit">Confirmar venta</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="requisitionDialog" class="modal wide-modal">
+    <div class="modal-head"><div><div class="eyebrow">ABASTECIMIENTO</div><h2>Requisición de mercancía</h2></div><button class="icon-btn" data-close="requisitionDialog">×</button></div>
+    <p class="muted">Se incluyen productos agotados o por debajo del stock mínimo. La cantidad sugerida completa el inventario hasta el mínimo.</p>
+    <div id="requisitionContent"></div>
+    <div class="form-actions"><button class="btn btn-ghost" data-close="requisitionDialog">Cerrar</button><button class="btn btn-secondary" id="copyRequisition">Copiar lista</button><button class="btn btn-primary" id="downloadRequisition">Descargar CSV</button></div>
+  </dialog>
+
+  <dialog id="backupDialog" class="modal">
+    <div class="modal-head"><div><div class="eyebrow">TUS DATOS</div><h2>Respaldo y restauración</h2></div><button class="icon-btn" data-close="backupDialog">×</button></div>
+    <p class="muted">Exporta periódicamente un archivo JSON. La importación reemplaza los datos actuales de este navegador.</p>
+    <button class="btn btn-secondary full-btn" id="exportJson">↧ Descargar respaldo JSON</button>
+    <label class="btn btn-ghost full-btn file-label">＋ Importar respaldo JSON<input id="importJson" type="file" accept="application/json"></label>
+    <p class="tiny" id="backupStatus">No se envía información a servidores.</p>
+  </dialog>
+
+  <dialog id="installDialog" class="modal">
+    <div class="modal-head"><div><div class="eyebrow">ACCESO RÁPIDO</div><h2>Instalar Cell's Shop</h2></div><button class="icon-btn" data-close="installDialog">×</button></div>
+    <div class="install-instructions">
+      <div class="instruction"><b>Android · Chrome</b><p>Abre el menú ⋮ del navegador y selecciona “Instalar aplicación” o “Agregar a pantalla principal”.</p></div>
+      <div class="instruction"><b>iPhone · Safari</b><p>Toca el botón Compartir y elige “Agregar a pantalla de inicio”. Luego confirma con “Agregar”.</p></div>
+      <p class="tiny">La instalación aparece cuando la aplicación está publicada mediante HTTPS. En GitHub Pages se sirve con HTTPS.</p>
+    </div>
+    <button class="btn btn-primary full-btn" id="installNow" hidden>Instalar ahora</button>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
